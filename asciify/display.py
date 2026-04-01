@@ -3,7 +3,6 @@ from typing import TextIO
 import io
 
 
-
 class Color(Enum):
     OPEN = "\033[48;2;30;35;50m"
     WALL = "\033[48;2;255;255;255m"
@@ -17,7 +16,6 @@ class Block(Enum):
     WALL = f"{Color.WALL.value}  {Color.RESET.value}"
     CELL = f"{Color.CELL.value}    {Color.RESET.value}"
     BLOCK = f"{Color.BLOCK.value}    {Color.RESET.value}"
-
 
 
 class AsciiCell:
@@ -115,13 +113,3 @@ def test():
 
 if __name__ == "__main__":
     test()
-    
-    
-    
-# Each cell in the maze is written as a single hexadecimal digit,
-# where the digit encodes the state of that cell's four walls as a 4-bit value.
-
-# bit 0 = 1 → North wall closed
-# bit 1 = 1 → East wall closed
-# bit 2 = 0 → South wall open
-# bit 3 = 0 → West wall open

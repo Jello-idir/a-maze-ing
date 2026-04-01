@@ -1,3 +1,3 @@
-from .display import ascii_cells
+from .display import Maze
 
-__all__ = ['ascii_cells']
+__all__ = ['Maze']
