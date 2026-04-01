@@ -2,10 +2,13 @@ install:
 	pip install -r requirements.txt
 
 run:
-	py amazing.py
+	@python3.12 a-maze-ing.py
 
 debug:
-	py -m pdb main.py
+	@python3.12 -m pdb a-maze-ing.py
+
+clean:
+	@rm -rf __py* */__py*
 
 lint:
 	flake8

@@ -1,0 +1,2 @@
+# module for errors type
+    
