@@ -1,9 +1,7 @@
 from common import Action, Dir
 
 class Cell:
-    def __init__(self, id: int) -> None:
-        self.id = id
-
+    def __init__(self) -> None:
         self.top: Cell = None
         self.bottom: Cell = None
         self.left: Cell = None
@@ -11,6 +9,7 @@ class Cell:
 
         self.hex: int = 15
         self.neighbor: Cell = None
+        self.is_origin = False
 
     def __edit_wall(self, action: Action, dir: Dir) -> None:
         if self.hex >> dir.value & 1 and action == Action.OPEN:
@@ -18,7 +17,7 @@ class Cell:
         elif not (self.hex >> dir.value & 1) and action == Action.CLOSE:
             self.hex += 2 ** dir.value
 
-    def open(self, dir: Dir) -> None:
+    def _open(self, dir: Dir) -> None:
         self.__edit_wall(Action.OPEN, dir)
 
         neighbor = [
@@ -33,7 +32,7 @@ class Cell:
                         - 2 * (dir.value >= 2))
                                 )
 
-    def close(self, dir: Dir) -> None:
+    def _close(self, dir: Dir) -> None:
         self.__edit_wall(Action.CLOSE, dir)
         neighbor = [
             self.top,
@@ -47,13 +46,19 @@ class Cell:
                         - 2 * (dir.value >= 2))
                                 )
 
+    @staticmethod
+    def wall_status(target, dir: Dir) -> None:
+        return target.hex >> dir.value & 1
+
 
     def update_walls(self) -> None:
         next_blocks = [self.top, self.right, self.bottom, self.left]
-        dirs = [Dir.N, Dir.E, Dir.S, Dir.W]
+        curr_block_dirs = [Dir.N, Dir.E, Dir.S, Dir.W]
+        next_block_dirs = [Dir.S, Dir.W, Dir.N, Dir.E]
 
-        for block, dir in zip(next_blocks, dirs):
-            if block and self.neighbor and self.neighbor.id == block.id:
-                self.open(dir)
-                break
-
+        for block, cb_dir, nb_dir in zip(next_blocks, curr_block_dirs, next_block_dirs):
+            if self.neighbor and block:
+                neighbor_id = self.neighbor
+                if neighbor_id == block:
+                    self._open(cb_dir)
+                    block._open(nb_dir)
