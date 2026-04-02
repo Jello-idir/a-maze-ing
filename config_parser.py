@@ -59,18 +59,3 @@ class ConfigParser:
                 config[key] = value
 
         return ConfigParser.validate(config)
-
-
-if __name__ == "__main__":
-    try:
-        with open("config.txt", 'r') as file:
-            try:
-                config = ConfigParser.parse(file)
-                print(config)
-            except (MissingKey, InvalidValue, ConfigParseError) as e:
-                print(f"{GColor.RED.value}Config Validation Feild:",
-                    f"{GColor.DEFAULT.value}{e}")
-    except InstantiationError as e:
-            print(e)
-
-
