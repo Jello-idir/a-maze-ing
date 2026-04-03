@@ -10,6 +10,7 @@ class Cell:
         self.hex: int = 15
         self.neighbor: Cell = None
         self.is_origin = False
+        self.locked = False
 
     def __edit_wall(self, action: Action, dir: Dir) -> None:
         if self.hex >> dir.value & 1 and action == Action.OPEN:
