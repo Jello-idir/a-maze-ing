@@ -15,4 +15,4 @@ if __name__ == "__main__":
 
     with open("output_maze.txt", 'r') as f:
         m = Maze(f)
-        m.display_maze()
+        m.render()

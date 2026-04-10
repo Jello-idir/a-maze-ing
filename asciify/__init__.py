@@ -1,3 +1,3 @@
-from .display import Maze
+from asciify.Maze import Maze
 
-__all__ = ['Maze']
+__all__ = ["Maze"]

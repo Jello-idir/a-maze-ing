@@ -1,0 +1,15 @@
+[maze_colors]
+cell   = "#000000"
+road   = "#222222"
+wall   = "#F7F7F7"
+blok   = "#3870CB"
+bg     = "#000000"
+shadow = "#3870CB"
+
+[locations]
+start  = "#3870CB"
+end    = "#38CBA4"
+
+[menu_colors]
+text   = '#FFFFFF'
+button = '#3A86FF'

@@ -1,6 +1,6 @@
 while true; do
 	printf "%100s" " " | tr " " "\n";
-	python display.py;
+	python -m asciify.display;
 	sleep 1;
 
 done
