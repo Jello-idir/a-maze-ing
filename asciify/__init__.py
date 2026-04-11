@@ -1,3 +1,3 @@
-from asciify.Maze import Maze
+from .AsciiMaze import AsciiMaze
 
-__all__ = ["Maze"]
+__all__ = ["AsciiMaze"]

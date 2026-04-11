@@ -5,6 +5,7 @@ wall   = "#F7F7F7"
 blok   = "#3870CB"
 bg     = "#000000"
 shadow = "#3870CB"
+panel =  "#3870CB"
 
 [locations]
 start  = "#3870CB"
