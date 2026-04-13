@@ -1,7 +1,7 @@
 # This project has been created as part of the 42 curriculum by ait-idi, yoabied
 # *README is Loading*
 
-
+![Banner](https://github.com/Dna9a/Repo-s_assets/blob/main/A-maze-ing/Banner.png?raw=true)
 
 <!-- A “Description” section that clearly presents the project, including its goal and a
 brief overview.
