@@ -1,233 +1,152 @@
-from enum import Enum
-from typing import TextIO
-import io
-
-from .palette import load_colors
+import tomllib
+from typing import TextIO, Generator
+import os
 
 
-COLOR: dict[str, str] = load_colors()
+def load_colors(theme: str) -> dict[str, str]:
+    base = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(base, "palettes", f"{theme}.toml")
+    with open(path, "rb") as f:
+        _data = tomllib.load(f)
+
+    def to_ansi(hex_color: str) -> str:
+        hex_color = hex_color.lstrip("#")
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        return f"\033[48;2;{r};{g};{b}m"
+
+    colors = {k: to_ansi(v) for k, v in _data["maze_colors"].items()}
+    colors["reset"] = "\033[0m"
+    return colors
+
+COLOR: dict[str, str] = load_colors("orange")
 PADDIN: int = 2
-ENABLE_SHADOW = True
 
-class Block(str, Enum):
-    def __str__(self):
-        return self.value
-    ROAD = COLOR["road"] + "  " + COLOR["reset"]
-    WALL = COLOR["wall"] + "  " + COLOR["reset"]
-    CELL = COLOR["cell"] + "    " + COLOR["reset"]
-    BLOK = COLOR["blok"] + "    " + COLOR["reset"]
-    PADD = COLOR["bg"] + "  " + COLOR["reset"]
-    SHADOW = COLOR["shadow"] + "  " + COLOR["reset"]
-    PANEL = COLOR["panel"] + " " + COLOR["reset"]
-
-
-class AsciiCell:
-    def __init__(self, val: int = 15):
-        self.n = bool(val & 0b0001)
-        self.e = bool(val & 0b0010)
-        self.s = bool(val & 0b0100)
-        self.w = bool(val & 0b1000)
-
-
-def _intify(hex_str: str) -> list[list[int]]:
-    cells: list[list[int]] = []
-
-    lines = hex_str.splitlines()
-    for line in lines:
-        cell_row: list[int] = []
-        for hex_digit in line.strip():
-            cell_row.append(int(hex_digit, 16))
-        cells.append(cell_row)
-    return cells
-
-
-def _int_asciify(cells: list[list[int]]) -> list[list[AsciiCell]]:
-    """list of int to a list of AsciiCell
-
-    Args:
-        cells (list[list[int]]): list of ints to parse into AsciiCell
-
-    Returns:
-        list[list[AsciiCell]]: list of AsciiCell
-    """
-    ascii_cells: list[list[AsciiCell]] = []
-    for row in cells:
-        ascii_row: list[AsciiCell] = []
-        for cell in row:
-            ascii_row.append(AsciiCell(cell))
-        ascii_cells.append(ascii_row)
-    return ascii_cells
+def _color_generator() -> Generator[dict[str, str], None, None]:
+    colors = [load_colors(theme) for theme in ["orange", "green", "red", "blue"]]
+    while True:
+        for color in colors:
+            yield color
 
 
 class AsciiMaze:
     def __init__(self, maze: list[list[int]]):
-        self.maze: list[list[AsciiCell]] = _int_asciify(maze)
+        self.maze: list[list[int]] =  maze
         self.width = len(maze[0])
         self.height = len(maze)
-
-    @classmethod
-    def from_file(cls, maze: str | TextIO) -> 'AsciiMaze':
-        if isinstance(maze, io.IOBase):
-            maze = maze.read()
-        if isinstance(maze, str):
-            maze_int = _intify(maze)
-        return cls(maze_int)
-
+        self.color_gen = _color_generator()
+        self.color = load_colors("blue")
 
     def render(self) -> None:
-        """displays the maze in the terminal"""
+        """renders the generated maze to the terminal
+        """
+        self.render_ints(self.maze)
 
-        def margin_x() -> None:
-            """prints the left and right margin of the maze"""
-            print(Block.PADD * PADDIN, end="")
+    def next_color(self) -> None:
+        """switches to the next color scheme
+        """
+        self.color = next(self.color_gen)
 
-        def margin_y() -> None:
-            """prints the upper and lower margin of the maze"""
-            for _ in range(PADDIN):
-                margin_x()
-                print(Block.PADD * (self.width * 3 + 1 + 2 * ENABLE_SHADOW), end="")
-                margin_x()
-                print()
+    @classmethod
+    def from_file(cls, maze: TextIO) -> 'AsciiMaze':
+        """creates an AsciiMaze from a file containing hex digits
 
-        def shadow_x() -> None:
-            """prints the right shadow of the maze"""
-            if not ENABLE_SHADOW:
-                return
-            print(Block.SHADOW, end="")
+        Args:
+            maze (TextIO): a file containing hex digits representing the maze
 
-        def shadow_y() -> None:
-            """prints the lower shadow of the maze"""
-            if not ENABLE_SHADOW:
-                return
-            margin_x()
-            print(Block.SHADOW * (self.width * 3 + 3), end="")
-            margin_x()
-            print()
+        Returns:
+            AsciiMaze: the generated maze
+        """
+        return cls(cls._intify(maze.read()))
 
-        def buttom_shaddow(size: int) -> None:
-            """prints the upper and lower margin of the maze"""
-            if not ENABLE_SHADOW:
-                return
-            for _ in range(size):
-                print(Block.SHADOW * (self.width * 3 + PADDIN * 2 + 3), end="")
-                print()
+    @classmethod
+    def from_str(cls, maze: str) -> 'AsciiMaze':
+        """creates an AsciiMaze from a string of hex digits
 
-        # upper margin
-        margin_y()
-        shadow_y()
+        Args:
+            maze (str): a string of hex digits representing the maze
 
-        # upper line
-        for _ in range(1):
-            margin_x()
-            shadow_x()
-            for cell in self.maze[0]:
-                print(Block.WALL, end="")
-                if (cell.n):
-                    print(Block.WALL * 2, end="")
-                else:
-                    print(Block.ROAD * 2, end="")
-            print(Block.WALL, end="")
-            shadow_x()
-            margin_x()
-            print()
-
-
-        # print lines
-        for row in self.maze:
-
-            # middlline
-            for _ in range(2):
-                margin_x()
-                shadow_x()
-                if row[0].w:
-                    print(Block.WALL, end="")
-                else:
-                    print(Block.ROAD, end="")
-
-                for cell in row:
-                    if all([cell.n, cell.e, cell.w, cell.s]):
-                        print(Block.BLOK, end="")
-                    else:
-                        print(Block.CELL, end="")
-                    if cell.e:
-                        print(Block.WALL, end="")
-                    else:
-                        print(Block.ROAD, end="")
-                shadow_x()
-                margin_x()
-                print()
-
-
-            # bottom line
-            for _ in range(1):
-                margin_x()
-                shadow_x()
-                print(Block.WALL, end="")
-                for cell in row:
-                    if cell.s:
-                        print(Block.WALL * 2, end="")
-                    else:
-                        print(Block.ROAD * 2, end="")
-                    print(Block.WALL, end="")
-                shadow_x()
-                margin_x()
-                print()
-
-        # lower margin
-        shadow_y()
-        margin_y()
-
-        # bottom shadow
-        buttom_shaddow(3)
-
+        Returns:
+            AsciiMaze: the generated maze
+        """
+        return cls(cls._intify(maze))
 
     @staticmethod
-    def render_lists_of_ints(maze: list[list[int]]) -> None:
+    def _intify(hex_str: str) -> list[list[int]]:
+        """converts a string of hex digits into a list of list of ints
+
+        Args:
+            hex_str (str): a string of hex digits representing the maze
+
+        Returns:
+            list[list[int]]: a list of list of ints representing the maze
+        """
+        cells: list[list[int]] = []
+
+        lines = hex_str.splitlines()
+        for line in lines:
+            cell_row: list[int] = []
+            for hex_digit in line.strip():
+                cell_row.append(int(hex_digit, 16))
+            cells.append(cell_row)
+        return cells
+
+    def flush_ints(self, maze: list[list[int]]) -> None:
+        print(f"\033[{self.height * 3 + 1 + 11}F", end="")
+        self.render_ints(maze)
+
+    def render_ints(self, maze: list[list[int]]) -> None:
         """renders a list of list of ints as a maze
 
         Args:
             cells (list[list[int]]): the maze to render
         """
-        width = len(maze[0])
-        height = len(maze)
+
+        ROAD = self.color["road"] + "  "
+        WALL = self.color["wall"] + "  "
+        CELL = self.color["cell"] + "    "
+        BLOK = self.color["blok"] + "    "
+        PADD = self.color["blok"] + "  "
+        SHADOW = self.color["shadow"] + "  "
+        VISITED = self.color["visited"] + "    "
+        CONNECTED = self.color["connected"] + "    "
+        ENTRY = self.color["entry"] + "    "
+        EXIT = self.color["exit"] + "    "
+        PATH = self.color["path"] + "    "
 
         def margin_x() -> None:
             """prints the left and right margin of the maze"""
-            print(Block.PADD * PADDIN, end="")
+            print(PADD * PADDIN * 2, end="")
 
         def margin_y() -> None:
             """prints the upper and lower margin of the maze"""
             for _ in range(PADDIN):
                 margin_x()
-                print(Block.PADD * (width * 3 + 1 + 2 * ENABLE_SHADOW), end="")
+                print(PADD * (self.width * 3 + 1 + 2), end="")
                 margin_x()
-                print()
+                print(self.color["reset"])
 
         def shadow_x() -> None:
             """prints the right shadow of the maze"""
-            if not ENABLE_SHADOW:
-                return
-            print(Block.SHADOW, end="")
+            print(SHADOW, end="")
 
         def shadow_y() -> None:
             """prints the lower shadow of the maze"""
-            if not ENABLE_SHADOW:
-                return
             margin_x()
-            print(Block.SHADOW * (width * 3 + 3), end="")
+            print(SHADOW * (self.width * 3 + 3), end="")
             margin_x()
-            print()
+            print(self.color["reset"])
 
         def buttom_shaddow(size: int) -> None:
             """prints the upper and lower margin of the maze"""
-            if not ENABLE_SHADOW:
-                return
             for _ in range(size):
-                print(Block.SHADOW * (width * 3 + PADDIN * 2 + 3), end="")
-                print()
+                print(SHADOW * (self.width * 3 + PADDIN * 4 + 3), end="")
+                print(self.color["reset"])
 
         # upper margin
         margin_y()
+        shadow_y()
         shadow_y()
 
         # upper line
@@ -235,16 +154,15 @@ class AsciiMaze:
             margin_x()
             shadow_x()
             for cell in maze[0]:
-                print(Block.WALL, end="")
+                print(WALL, end="")
                 if (cell & 0b0001):
-                    print(Block.WALL * 2, end="")
+                    print(WALL * 2, end="")
                 else:
-                    print(Block.ROAD * 2, end="")
-            print(Block.WALL, end="")
+                    print(ROAD * 2, end="")
+            print(WALL, end="")
             shadow_x()
             margin_x()
-            print()
-
+            print(self.color["reset"])
 
         # print lines
         for row in maze:
@@ -254,44 +172,176 @@ class AsciiMaze:
                 margin_x()
                 shadow_x()
                 if row[0] & 0b1000:
-                    print(Block.WALL, end="")
+                    print(WALL, end="")
                 else:
-                    print(Block.ROAD, end="")
+                    print(ROAD, end="")
 
                 for cell in row:
-                    if all([cell & 0b0001, cell & 0b0010,
-                            cell & 0b0100, cell & 0b1000]):
-                        print(Block.BLOK, end="")
+                    if ((cell >> 4) == 0b1111):
+                        print(BLOK, end="")
+                    elif (cell >> 6) == 0b11:
+                        print(PATH, end="")
+                    elif cell & 0b10000000:
+                        print(ENTRY, end="")
+                    elif cell & 0b1000000:
+                        print(EXIT, end="")
+                    elif cell & 0b100000:
+                        print(CONNECTED, end="")
+                    elif (cell & 0b10000):
+                        print(VISITED, end="")
                     else:
-                        print(Block.CELL, end="")
+                        print(CELL, end="")
                     if cell & 0b0010:
-                        print(Block.WALL, end="")
+                        print(WALL, end="")
                     else:
-                        print(Block.ROAD, end="")
+                        print(ROAD, end="")
                 shadow_x()
                 margin_x()
-                print()
-
+                print(self.color["reset"])
 
             # bottom line
             for _ in range(1):
                 margin_x()
                 shadow_x()
-                print(Block.WALL, end="")
+                print(WALL, end="")
                 for cell in row:
                     if cell & 0b0100:
-                        print(Block.WALL * 2, end="")
+                        print(WALL * 2, end="")
                     else:
-                        print(Block.ROAD * 2, end="")
-                    print(Block.WALL, end="")
+                        print(ROAD * 2, end="")
+                    print(WALL, end="")
                 shadow_x()
                 margin_x()
-                print()
+                print(self.color["reset"])
 
         # lower margin
-        shadow_y()
+        margin_y()
         margin_y()
 
         # bottom shadow
         buttom_shaddow(3)
 
+    def render_binary(self, maze: list[list[int]]) -> None:
+        """renders a list of list of ints as a maze
+
+        Args:
+            cells (list[list[int]]): the maze to render
+        """
+
+        ROAD = self.color["road"] + "  "
+        WALL = self.color["wall"] + "  "
+        CELL = self.color["cell"]
+        BLOK = self.color["blok"]
+        PADD = self.color["blok"] + "  "
+        SHADOW = self.color["shadow"] + "  "
+        VISITED = self.color["visited"]
+        CONNECTED = self.color["connected"]
+        ENTRY = self.color["entry"]
+        EXIT = self.color["exit"]
+        PATH = self.color["path"]
+
+        def margin_x() -> None:
+            """prints the left and right margin of the maze"""
+            print(PADD * PADDIN * 2, end="")
+
+        def margin_y() -> None:
+            """prints the upper and lower margin of the maze"""
+            for _ in range(PADDIN):
+                margin_x()
+                print(PADD * (self.width * 3 + 1 + 2), end="")
+                margin_x()
+                print(self.color["reset"])
+
+        def shadow_x() -> None:
+            """prints the right shadow of the maze"""
+            print(SHADOW, end="")
+
+        def shadow_y() -> None:
+            """prints the lower shadow of the maze"""
+            margin_x()
+            print(SHADOW * (self.width * 3 + 3), end="")
+            margin_x()
+            print(self.color["reset"])
+
+        def buttom_shaddow(size: int) -> None:
+            """prints the upper and lower margin of the maze"""
+            for _ in range(size):
+                print(SHADOW * (self.width * 3 + PADDIN * 4 + 3), end="")
+                print(self.color["reset"])
+
+        # upper margin
+        margin_y()
+        shadow_y()
+        shadow_y()
+
+        # upper line
+        for _ in range(1):
+            margin_x()
+            shadow_x()
+            for cell in maze[0]:
+                print(WALL, end="")
+                if (cell & 0b0001):
+                    print(WALL * 2, end="")
+                else:
+                    print(ROAD * 2, end="")
+            print(WALL, end="")
+            shadow_x()
+            margin_x()
+            print(self.color["reset"])
+
+        # print lines
+        for row in maze:
+
+            # middlline
+            for _ in range(2):
+                margin_x()
+                shadow_x()
+                if row[0] & 0b1000:
+                    print(WALL, end="")
+                else:
+                    print(ROAD, end="")
+
+                for cell in row:
+                    if ((cell >> 4) == 0b1111):
+                        print(f"{BLOK}{cell>>4:04b}", end="")
+                    elif (cell >> 6) == 0b11:
+                        print(f"{PATH}{cell>>4:04b}", end="")
+                    elif cell & 0b10000000:
+                        print(f"{ENTRY}{cell>>4:04b}", end="")
+                    elif cell & 0b1000000:
+                        print(f"{EXIT}{cell>>4:04b}", end="")
+                    elif cell & 0b100000:
+                        print(f"{CONNECTED}{cell>>4:04b}", end="")
+                    elif (cell & 0b10000):
+                        print(f"{VISITED}{cell>>4:04b}", end="")
+                    else:
+                        print(f"{CELL}{cell:04b}", end="")
+                    if cell & 0b0010:
+                        print(WALL, end="")
+                    else:
+                        print(ROAD, end="")
+                shadow_x()
+                margin_x()
+                print(self.color["reset"])
+
+            # bottom line
+            for _ in range(1):
+                margin_x()
+                shadow_x()
+                print(WALL, end="")
+                for cell in row:
+                    if cell & 0b0100:
+                        print(WALL * 2, end="")
+                    else:
+                        print(ROAD * 2, end="")
+                    print(WALL, end="")
+                shadow_x()
+                margin_x()
+                print(self.color["reset"])
+
+        # lower margin
+        margin_y()
+        margin_y()
+
+        # bottom shadow
+        buttom_shaddow(3)

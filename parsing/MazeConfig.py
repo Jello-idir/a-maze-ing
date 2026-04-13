@@ -1,6 +1,5 @@
-from typing import TextIO
+from typing import TextIO, Any
 import os
-import random
 os.environ['PYDANTIC_ERRORS_INCLUDE_URL'] = '0'
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
@@ -15,13 +14,13 @@ class MazeConfig(BaseModel):
         ValueError: if the config values are invalid
     """
     model_config = ConfigDict(hide_input_in_errors=True)
-    width: int = Field(ge=12, le=128)
-    height: int = Field(gt=9, le=72)
+    width: int = Field(ge=9)
+    height: int = Field(gt=7)
     entry: tuple[int, int]
     exit: tuple[int, int]
     output_file: str
     perfect: bool
-    seed: int
+    seed: int | None
 
     @field_validator('entry', 'exit', mode='before')
     def vali_coordinates(cls, v: str) -> tuple[int, int]:
@@ -130,12 +129,12 @@ class MazeConfig(BaseModel):
                 output_file=data["OUTPUT_FILE"],
                 perfect=data["PERFECT"].lower() in ("true", "1", "yes"),
                 seed=int(data["SEED"]) if "SEED" in data
-                else random.randint(-99999999999, 99999999999),
+                else None,
             )
         except ValueError as e:
             raise ValueError(f"Invalid config values: {e}")
 
-    def get_config(self) -> dict:
+    def get_config(self) -> dict[str, Any]:
         """return the config as a dict, useful for printing and debugging.
 
         Returns:

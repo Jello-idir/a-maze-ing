@@ -26,6 +26,11 @@ def fill(image, color):
 
 @mlx_loop_hook_func
 def ft_hook(param):
+    """_summary_
+
+    Args:
+        param (_type_): _description_
+    """
     mlx_ptr = ctypes.cast(param, ctypes.POINTER(mlx_t))
     if mlx.mlx_is_key_down(mlx_ptr, MLX_KEY_ESCAPE):
         mlx.mlx_close_window(mlx_ptr)
@@ -37,6 +42,9 @@ def ft_hook(param):
         image.contents.instances[0].x -= 5
     if mlx.mlx_is_key_down(mlx_ptr, MLX_KEY_RIGHT):
         image.contents.instances[0].x += 5
+
+
+
 
 def main():
     # Better to encapsulate in a class, but keeping it simple for the example
