@@ -5,13 +5,8 @@ description = "Interactive maze generation and pathfinding visualizer"
 authors = ["Jello-idir and Dna9a"]
 packages = [
     { include = "mazegen" },
-    { include = "common" },
-    { include = "config" },
-    { include = "maze" },
-    { include = "solver" },
-    { include = "display" },
-    { include = "primitives" }
 ]
+include = ["mazegen/palettes/*.toml"]
 
 [tool.poetry.dependencies]
 python = ">=3.13"
