@@ -1,8 +1,13 @@
 import sys
 import termios
 import tty
-from mazegen import MazeGenerator, AsciiMaze, MazeConfig
-from pydantic import ValidationError
+try:
+    from pydantic import ValidationError
+    from mazegen import MazeGenerator, AsciiMaze, MazeConfig
+except ImportError as e:
+    print(f"\033[31mMissing dependency:\033[0m {e}")
+    print("Run: make install")
+    sys.exit(1)
 
 
 def get_config() -> MazeConfig:
@@ -108,35 +113,30 @@ def start_maze_interaction() -> None:
     try:
         mzcnf = get_config()
     except (ValueError, ValidationError) as e:
-        print(f"\033[31mConfig Error:\033[0m {e}")
-        return
+        raise ValueError(f"\033[31mConfig Error:\033[0m {e}")
 
     try:
         mzgen = MazeGenerator.from_object(mzcnf)
         mzgen.intialize()
     except ValueError as e:
-        print(f"\033[31mMaze Generation Error:\033[0m {e}")
-        return
+        raise ValueError(f"\033[31mMaze Generation Error:\033[0m {e}")
 
     try:
         mzasci = AsciiMaze(mzgen.maze)
         mzgen.connect_ascii(mzasci)
     except ValueError as e:
-        print(f"\033[31masci display Error:\033[0m {e}")
-        return
+        raise ValueError(f"\033[31masci display Error:\033[0m {e}")
 
     try:
         mzgen.wilson_algo()
         mzgen.solve_maze(False)
     except Exception as e:
-        print(f"\033[31mMaze Generation Error:\033[0m {e}")
-        return
+        raise ValueError(f"\033[31mMaze Generation Error:\033[0m {e}")
 
     try:
         start(mzgen, mzcnf, mzasci)
     except Exception as e:
-        print(f"\033[31mInteraction Error:\033[0m {e}")
-        return
+        raise ValueError(f"\033[31mInteraction Error:\033[0m {e}")
 
 
 if __name__ == "__main__":
@@ -146,3 +146,4 @@ if __name__ == "__main__":
         pass
     except Exception as e:
         print(f"\033[31mError:\033[0m {e}")
+        sys.exit(1)

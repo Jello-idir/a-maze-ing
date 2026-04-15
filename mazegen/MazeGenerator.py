@@ -360,10 +360,7 @@ class MazeGenerator:
         AsciiMaze instance, if available,
         """
         if self.asciimaze:
-            try:
-                self.asciimaze.render()
-            except Exception as e:
-                print(f"\033[31mError rendering maze:\033[0m {e}")
+            self.asciimaze.render()
 
     def free_move(self) -> None:
         """gives the ability to move in the maze using WASD,
@@ -384,10 +381,10 @@ class MazeGenerator:
 
             print()
             print(
-                f"{bclr}{beff} ↑ W {rst}|{bclr}{teff} Move Up {rst}  "
-                f"{bclr}{beff} ← A {rst}|{bclr}{teff} Move Left {rst}  "
-                f"{bclr}{beff} S ↓ {rst}|{bclr}{teff} Move Down {rst}  "
-                f"{bclr}{beff} D → {rst}|{bclr}{teff} Move Right {rst}  "
+                f"{bclr}{beff} W {rst}|{bclr}{teff} Move Up {rst}  "
+                f"{bclr}{beff} A {rst}|{bclr}{teff} Move Left {rst}  "
+                f"{bclr}{beff} S {rst}|{bclr}{teff} Move Down {rst}  "
+                f"{bclr}{beff} D {rst}|{bclr}{teff} Move Right {rst}  "
                 )
 
         def read_key() -> str:
@@ -455,7 +452,6 @@ class MazeGenerator:
         """
         start = self.entry
         end = self.exit
-        color = self.asciimaze.clr["block"] if self.asciimaze else "\033[32m"
 
         def points_to_path(points: list[tuple[int, int]]) -> str:
             """ converts a list of coordinates

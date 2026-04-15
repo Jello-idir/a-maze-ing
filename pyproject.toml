@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "mazegen"
+version = "1.0.0"
+description = "Interactive maze generation and pathfinding visualizer"
+authors = ["Jello-idir and Dna9a"]
+packages = [
+    { include = "mazegen" },
+    { include = "common" },
+    { include = "config" },
+    { include = "maze" },
+    { include = "solver" },
+    { include = "display" },
+    { include = "primitives" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.13"
+pydantic = ">=2.0.0,<3.0.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,19 +1,23 @@
+PYTHON	= python3.14
+MAIN	= a-maze-ing.py
+CONFIG	= config.txt
+
 install:
 	pip install -r requirements.txt
 
 run:
-	@python3.14 a-maze-ing.py config.txt
+	@$(PYTHON) $(MAIN) $(CONFIG)
 
 debug:
-	@python3.14 -m pdb a-maze-ing.py
+	@$(PYTHON) -m pdb $(MAIN)
 
 clean:
-	@rm -rf __py* */__py*
+	@rm -rf __pycache__ */__pycache__ .mypy_cache
 
 lint:
-	flake8
+	flake8 .
 	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-	flake8
+	flake8 .
 	mypy . --strict
