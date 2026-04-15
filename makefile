@@ -5,7 +5,7 @@ run:
 	@python3.14 a-maze-ing.py config.txt
 
 debug:
-	@python3.12 -m pdb a-maze-ing.py
+	@python3.14 -m pdb a-maze-ing.py
 
 clean:
 	@rm -rf __py* */__py*

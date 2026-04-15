@@ -1,0 +1,12 @@
+[maze_colors]
+cell   = "#FFFFFF"
+road   = "#CECECE"
+wall   = "#1A1717"
+block   = "#614343"
+shadow = "#251C1C"
+visited = "#AD8686"
+connected = "#9E6A6A"
+path = "#25CD81"
+
+entry  = "#626262"
+exit   = "#533939"

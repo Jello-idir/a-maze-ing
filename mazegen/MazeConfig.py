@@ -1,26 +1,48 @@
 from typing import TextIO, Any
 import os
-os.environ['PYDANTIC_ERRORS_INCLUDE_URL'] = '0'
 from pydantic import BaseModel, Field, field_validator, ConfigDict
+os.environ['PYDANTIC_ERRORS_INCLUDE_URL'] = '0'
 
 
 class MazeConfig(BaseModel):
     """A class representing the configuration for a maze generator.
 
     Args:
-        BaseModel (_type_): the base class for the MazeConfig, used for validation and parsing
+        BaseModel (_type_): the base class for the MazeConfig,
+        used for validation and parsing
 
     Raises:
         ValueError: if the config values are invalid
     """
     model_config = ConfigDict(hide_input_in_errors=True)
     width: int = Field(ge=9)
-    height: int = Field(gt=7)
+    height: int = Field(ge=7)
     entry: tuple[int, int]
     exit: tuple[int, int]
     output_file: str
     perfect: bool
     seed: int | None
+
+    @field_validator('output_file')
+    def validate_output_file(cls, v: str) -> str:
+        """validate that the output file is a valid path
+
+        Args:
+            v (str): the output file path to validate
+
+        Raises:
+            ValueError: if the output file path is invalid
+
+        Returns:
+            str: the output file path if valid
+        """
+        if not v:
+            raise ValueError("Output file cannot be empty")
+        if os.path.isdir(v):
+            raise ValueError(f"Output file '{v}' cannot be a directory")
+        if v.endswith('.py'):
+            raise ValueError("Output file cannot have a .py extension")
+        return v
 
     @field_validator('entry', 'exit', mode='before')
     def vali_coordinates(cls, v: str) -> tuple[int, int]:
@@ -44,8 +66,8 @@ class MazeConfig(BaseModel):
             raise ValueError("Coordinates must be in x,y format")
 
     @field_validator('entry', 'exit')
-    def vali_bounds(cls, v: tuple[int, int], info) -> tuple[int, int]:
-        """validate that the coordinates are within the bounds of the maze dimensions
+    def vali_bounds(cls, v: tuple[int, int], info: Any) -> tuple[int, int]:
+        """validate that the coordinates are within the bounds of the maze
 
         Args:
             v (tuple[int, int]): the coordinates to validate
@@ -65,7 +87,8 @@ class MazeConfig(BaseModel):
         return v
 
     @field_validator('exit')
-    def vali_is_same_points(cls, v: tuple[int, int], info) -> tuple[int, int]:
+    def vali_is_same_points(cls, v: tuple[int, int],
+                            info: Any) -> tuple[int, int]:
         """validate that entry and exit are not the same point
 
         Args:
@@ -82,7 +105,7 @@ class MazeConfig(BaseModel):
         return v
 
     @classmethod
-    def from_file(cls, filename: TextIO) -> 'MazeConfig':
+    def from_file(cls, fl: TextIO) -> 'MazeConfig':
         """initiates a MazeConfig from a config file
 
         The config file should be in the following format:
@@ -103,19 +126,30 @@ class MazeConfig(BaseModel):
         Returns:
             MazeConfig: the MazeConfig object created from the config file
         """
+        required = [
+            "WIDTH", "HEIGHT", "ENTRY",
+            "EXIT", "OUTPUT_FILE", "PERFECT"
+            ]
         try:
             data: dict[str, str] = {}
-            for line in filename:
+            for line in fl:
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
                 key, _, value = line.partition("=")
-                if key.strip() in data:
+                k = key.strip().upper()
+                v = value.strip().upper()
+                if k in data and k in required and v != data[k]:
                     raise ValueError(f"Duplicate key: {key.strip()}")
-                data[key.strip()] = value.strip()
+                data[key.strip().upper()] = value.strip()
+        except FileNotFoundError:
+            raise ValueError(f"Config file '{fl.name}' not found.")
+        except PermissionError:
+            raise ValueError(f"Permission denied for config file '{fl.name}'.")
+        except OSError as e:
+            raise ValueError(f"Error opening config file '{fl.name}': {e}")
         except Exception as e:
             raise ValueError(f"Error reading config file: {e}")
-        required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
         missing = [k for k in required if k not in data]
         if missing:
             raise ValueError(f"Missing required keys: {', '.join(missing)}")
