@@ -26,9 +26,7 @@ python3 a_maze_ing.py config.txt
 To install the project requiremenets, run the following command in the terminal:
 
 ```Make
-make install-3.14 # for python3.14
-# Or basicaly 
-make install-3.11 # for python3.11
+make install  # uses python3.11
 ```
 
 To run the program, use the following command:
@@ -40,13 +38,13 @@ make run
 To clean the project, use the following command:
 
 ```Make
-make clean
+make clean # deletes: __pycache__, */__pycache__, .mypy_cache
 ```
 
 To lint the code, use the following command:
 
 ```Make
-make lint
+make lint # uses flake8 & mypy
 ```
 
 # Resources
@@ -58,6 +56,7 @@ make lint
 
 ## Config file structure
 The configuration file is a simple text file that contains the following parameters:
+
 ```
 WIDTH=20 -> the width of the maze
 HEIGHT=10 -> the height of the maze
