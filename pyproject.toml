@@ -6,7 +6,7 @@ authors = ["aait-idi and yoabied"]
 packages = [
     { include = "mazegen" },
 ]
-include = ["mazegen/palettes/*.toml"]
+include = ["mazegen/palettes/*.toml", "mazegen/py.typed"]
 
 [tool.poetry.dependencies]
 python = ">=3.13"
