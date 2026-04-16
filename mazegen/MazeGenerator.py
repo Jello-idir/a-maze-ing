@@ -90,7 +90,7 @@ class MazeGenerator:
             raise ValueError("Width and height must be at least 9 and 7")
         if not (0 <= self.entry[0] < self.w and 0 <= self.entry[1] < self.h):
             raise ValueError("Entry coordinates out of bounds")
-        if not (0 <= self.exit[0] < self.w and 0 < self.exit[1] <= self.h):
+        if not (0 <= self.exit[0] < self.w and 0 <= self.exit[1] < self.h):
             raise ValueError("Exit coordinates out of bounds")
         if self.entry == self.exit:
             raise ValueError("Entry and exit cannot be the same point")
@@ -168,10 +168,7 @@ class MazeGenerator:
                 if (p[0] > 0
                         and self.maze[p[1]][p[0] - 1] >> 4 != 0b1111):
                     neighbors.append((p[0] - 1, p[1]))
-                res = random.choice(neighbors)
-                if res[0] == p[0]:
-                    res = random.choice(neighbors)
-                return res
+                return random.choice(neighbors)
 
             while True:
                 p = random_neighbor(p)

@@ -188,11 +188,12 @@ class AsciiMaze:
         PATH = self.clr["path"] + "    " if self.showpath else CELL
         R = self.clr["reset"]
         M = BLOCK * 4
+        NL = R + "\n"
 
         UPSHADOW = M + SHADOW * (self.w * 3 + 3) + M
 
-        buff.append(f"{M + BLOCK * (self.w * 3 + 3) + M + R + "\n"}" * 2)
-        buff.append(f"{UPSHADOW + R + "\n"}" * 2)
+        buff.append(f"{M + BLOCK * (self.w * 3 + 3) + M + NL}" * 2)
+        buff.append(f"{UPSHADOW + NL}" * 2)
 
         line = M + SHADOW
         for point in maze[0]:
@@ -201,7 +202,7 @@ class AsciiMaze:
                 line += WALL * 2
             else:
                 line += ROAD * 2
-        line += WALL + SHADOW + M + R + "\n"
+        line += WALL + SHADOW + M + NL
         buff.append(line)
 
         for row in maze:
@@ -232,7 +233,7 @@ class AsciiMaze:
                     else:
                         line += ROAD
 
-                line += SHADOW + M + R + "\n"
+                line += SHADOW + M + NL
                 buff.append(line)
 
             line = M + SHADOW + WALL
@@ -242,10 +243,10 @@ class AsciiMaze:
                 else:
                     line += ROAD * 2
                 line += WALL
-            line += SHADOW + M + R + "\n"
+            line += SHADOW + M + NL
             buff.append(line)
 
-        buff.append(f"{M + BLOCK * (self.w * 3 + 3) + M + R + "\n"}" * 4)
-        buff.append(f"{SHADOW * (self.w * 3 + 11) + R + "\n"}" * 2)
+        buff.append(f"{M + BLOCK * (self.w * 3 + 3) + M + NL}" * 4)
+        buff.append(f"{SHADOW * (self.w * 3 + 11) + NL}" * 2)
 
         write(''.join(buff))
