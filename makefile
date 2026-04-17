@@ -1,15 +1,16 @@
 # Colors
-RED   := \033[31m
-GREEN  := \033[32m
-YELLOW := \033[33m
-BLUE   := \033[34m
-CYAN   := \033[36m
-RESET  := \033[0m
+RED = \033[31m
+GREEN = \033[32m
+YELLOW = \033[33m
+BLUE = \033[34m
+CYAN = \033[36m
+RESET = \033[0m
 
 # Variables
-PYTHON	= python3.11
-MAIN	= a-maze-ing.py
-CONFIG	= config.txt
+PYTHON = python3
+PIP	= pip3
+MAIN = a-maze-ing.py
+CONFIG = config.txt
 
 run: install
 	@echo "$(GREEN)Cooking🍳😛.............. </>$(RESET)"
@@ -21,11 +22,10 @@ install:
 	@echo "$(CYAN)Still going..............$(RESET)"
 	@sleep 1
 	@echo "$(CYAN)One second a jmi..............$(RESET)"
-	pip3.11 install -r requirements.txt
+	$(PIP) install -r requirements.txt
 	@echo "$(GREEN)Build complete! 🐪$(RESET)"
 
 debug:
-	@qq
 	@sleep 1
 	@$(PYTHON) -m pdb $(MAIN) $(CONFIG)
 
