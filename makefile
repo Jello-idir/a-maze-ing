@@ -12,7 +12,10 @@ PIP	= pip3
 MAIN = a-maze-ing.py
 CONFIG = config.txt
 
-run: install
+.PHONY: run install debug clean lint lint-strict
+
+
+run:
 	@echo "$(GREEN)Cooking🍳😛.............. </>$(RESET)"
 	@$(PYTHON) $(MAIN) $(CONFIG)
 
@@ -30,7 +33,7 @@ debug:
 	@$(PYTHON) -m pdb $(MAIN) $(CONFIG)
 
 clean:
-	@echo "$(RED)CLEANINNG........"
+	@echo "$(RED)CLEANINNG........$(RESET)"
 	@sleep 1
 	@rm -rf __pycache__ */__pycache__ .mypy_cache
 
@@ -43,3 +46,4 @@ lint-strict:
 	@echo "$(YELLOW)CHECKKINNG YOO FLAKE8 && MYPY STRICT..........."
 	flake8 .
 	mypy . --strict
+

@@ -21,7 +21,7 @@ python3 a_maze_ing.py config.txt
 ```
 - `a_maze_ing.py` is our main program file.
 
-- `config.txt` is our config file where we can insert the following : 
+- `config.txt` is our config file where we can insert the following :
 
 To install the project requiremenets, run the following command in the terminal:
 
