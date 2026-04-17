@@ -26,7 +26,9 @@ install:
 	@sleep 1
 	@echo "$(CYAN)One second a jmi..............$(RESET)"
 	$(PIP) install -r requirements.txt
-	@echo "$(GREEN)Build complete! 🐪$(RESET)"
+	$(PIP) install flake8
+	$(PIP) install mypy
+	@echo "$(GREEN)Build complete ALL DONEE :) ! 🐪$(RESET)"
 
 debug:
 	@sleep 1
