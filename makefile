@@ -16,36 +16,36 @@ CONFIG = config.txt
 
 
 run:
-	@echo "$(GREEN)Cooking🍳😛.............. </>$(RESET)"
+	@echo -e "$(GREEN)Cooking🍳😛.............. </>$(RESET)"
 	@$(PYTHON) $(MAIN) $(CONFIG)
 
 install:
-	@echo "$(BLUE)Installing...... </>$(RESET)"
+	@echo -e "$(BLUE)Installing...... </>$(RESET)"
 	@sleep 1
-	@echo "$(CYAN)Still going..............$(RESET)"
+	@echo -e "$(CYAN)Still going..............$(RESET)"
 	@sleep 1
-	@echo "$(CYAN)One second a jmi..............$(RESET)"
+	@echo -e "$(CYAN)One second a jmi..............$(RESET)"
 	$(PIP) install -r requirements.txt
 	$(PIP) install flake8
 	$(PIP) install mypy
-	@echo "$(GREEN)Build complete ALL DONEE :) ! 🐪$(RESET)"
+	@echo -e "$(GREEN)Build complete ALL DONEE :) ! 🐪$(RESET)"
 
 debug:
 	@sleep 1
 	@$(PYTHON) -m pdb $(MAIN) $(CONFIG)
 
 clean:
-	@echo "$(RED)CLEANINNG........$(RESET)"
+	@echo -e "$(RED)CLEANINNG........$(RESET)"
 	@sleep 1
 	@rm -rf __pycache__ */__pycache__ .mypy_cache
 
 lint:
-	@echo "$(YELLOW)CHECKKINNG YOO FLAKE8 && MYPY..........."
+	@echo -e "$(YELLOW)CHECKKINNG YOO FLAKE8 && MYPY..........."
 	flake8 .
 	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-	@echo "$(YELLOW)CHECKKINNG YOO FLAKE8 && MYPY STRICT..........."
+	@echo -e "$(YELLOW)CHECKKINNG YOO FLAKE8 && MYPY STRICT..........."
 	flake8 .
 	mypy . --strict
 
