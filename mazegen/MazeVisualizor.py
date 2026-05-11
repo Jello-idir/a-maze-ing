@@ -56,24 +56,19 @@ class MazeFrame:
                 pixels[idx + 2] = (color >> 8 ) & 0xFF
                 pixels[idx + 3] = (color      ) & 0xFF
 
-        for x, y, val in cells:
-            ox = x * cell  # pixel origin of this cell
-            oy = y * cell
-
-            # --- fill cell interior ---
-            for j in range(thick, cell):
-                for i in range(thick, cell):
-                    put(ox + i, oy + j, self.colors.cell_color)
-
                 # --- walls (bitmask: West=8, South=4, East=2, North=1) ---
         for x, y, val in cells:
             ox = x * cell  # pixel origin of this cell
             oy = y * cell
+            color = self.colors.cell_color
+
+            if val == 0b1111:
+                color = self.colors.block_color
 
             # --- fill cell interior ---
             for j in range(thick, cell):
                 for i in range(thick, cell):
-                    put(ox + i, oy + j, self.colors.cell_color)
+                    put(ox + i, oy + j, color)
 
             # --- walls (bitmask: West=8, South=4, East=2, North=1) ---
 

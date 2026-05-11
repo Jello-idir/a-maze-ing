@@ -6,6 +6,7 @@ from dataclasses import dataclass
 class cfg_clr:
     cell_color: int
     wall_color: int
+    block_color: int
     menu_color: int
     grid_bg_color: int
     grid_lines_color: int
@@ -44,7 +45,8 @@ if __name__ == "__main__":
     colors = cfg_clr(
         cell_color=(0x2F2F2F << 8) | 0xFF,
         wall_color=(0xFFFFFF << 8) | 0xFF,
-        menu_color=(0x105CB3 << 8) | 0xFF,
+        block_color=(0x105CB3 << 8) | 0xFF,
+        menu_color=(0x383C3F << 8) | 0xFF,
         grid_bg_color=(0x000000 << 8) | 0xFF,
         grid_lines_color=(0x141414 << 8) | 0xFF,
     )
