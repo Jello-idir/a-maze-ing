@@ -16,7 +16,6 @@ CONFIG = config.txt
 
 
 run:
-	@echo -e "$(GREEN)Cooking🍳😛.............. </>$(RESET)"
 	@$(PYTHON) $(MAIN) $(CONFIG)
 
 install:

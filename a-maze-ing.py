@@ -1,6 +1,8 @@
 import sys
 import termios
 import tty
+
+
 try:
     from pydantic import ValidationError
     from mazegen import MazeGenerator, AsciiMaze, MazeConfig
