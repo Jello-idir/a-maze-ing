@@ -6,7 +6,10 @@ from .MazeConfig import MazeConfig
 class ColorConfig:
     cell: int
     wall: int
+
     block: int
+    visited: int
+    path: int
 
     menu: int
 

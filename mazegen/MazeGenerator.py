@@ -1,10 +1,6 @@
-import termios
-import sys
 import random
 import time
-import tty
 from collections.abc import Callable
-from .AsciiMaze import AsciiMaze
 from .MazeConfig import MazeConfig
 from heapq import heappush, heappop
 
@@ -46,7 +42,6 @@ class MazeGenerator:
         self.output_file: str = output_file
         self.perfect: bool = perfect
         self.seed = seed
-        self.asciimaze: AsciiMaze | None = None
         self.solution: str = ""
         if seed is None:
             self.seed = int(time.time())
@@ -110,7 +105,7 @@ class MazeGenerator:
             f.write(f"{self.exit[0]},{self.exit[1]}\n")
             f.write(self.solution + '\n')
 
-    def intialize(self) -> None:
+    def initialize(self) -> None:
         """generates the maze by initializing it,
         adding the 42 pattern, marking the entry and exit,
         """
@@ -126,14 +121,6 @@ class MazeGenerator:
         self.maze[self.entry[1]][self.entry[0]] |= 0b100000
         self.maze[self.exit[1]][self.exit[0]] |= 0b01000000
         self._add_42_pattern()
-
-    def connect_ascii(self, ascii: AsciiMaze) -> None:
-        """connects the maze generator to an AsciiMaze instance
-        for visualization during generation and solving
-        """
-        if not isinstance(ascii, AsciiMaze):
-            raise ValueError("Expected an instance of AsciiMaze")
-        self.asciimaze = ascii
 
     def wilson_algo(self) -> None:
         """ generates the maze using Wilson's algorithm,
@@ -352,95 +339,11 @@ class MazeGenerator:
             if p[0] > 0:
                 action(p[0] - 1, p[1], 0b0010)
 
-    def render(self) -> None:
-        """ renders the maze using the connected
-        AsciiMaze instance, if available,
-        """
-        if self.asciimaze:
-            self.asciimaze.render()
-
-    def free_move(self) -> None:
-        """gives the ability to move in the maze using WASD,
-        it marks your position as path (|= 11000000) using termios
-        """
-        def display_menu(color: str) -> None:
-            """ displays the menu for the free move mode,
-            showing the controls and their descriptions
-
-            Args:
-                color (str): the color to use for the menu display
-            """
-            beff = "\033[1m"
-            teff = "\033[3m"
-
-            bclr = color + "\033[38;2;255;255;255m"
-            rst = "\033[0m"
-
-            print()
-            print(
-                f"{bclr}{beff} W {rst}|{bclr}{teff} Move Up {rst}  "
-                f"{bclr}{beff} A {rst}|{bclr}{teff} Move Left {rst}  "
-                f"{bclr}{beff} S {rst}|{bclr}{teff} Move Down {rst}  "
-                f"{bclr}{beff} D {rst}|{bclr}{teff} Move Right {rst}  "
-                )
-
-        def read_key() -> str:
-            """reads a single character from the user input without blocking
-            """
-            fd = sys.stdin.fileno()
-            old_settings = termios.tcgetattr(fd)
-            try:
-                tty.setraw(sys.stdin.fileno())
-                ch = sys.stdin.read(1)
-            except Exception as e:
-                print(f"\033[31mError reading input:\033[0m {e}")
-                ch = ""
-            finally:
-                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-            return ch.lower()
-
-        pos = self.entry
-        new_pos = pos
-        color = self.asciimaze.clr["block"] if self.asciimaze else "\033[44m"
-        while True:
-            self.maze[new_pos[1]][new_pos[0]] |= 0b11000000
-            sys.stdout.write("\033[H\033[J")
-            self.render()
-            display_menu(color)
-            pos = new_pos
-            if pos == self.exit:
-                break
-            key = read_key()
-            if key in ('q', '\x03', 'm'):
-                self.maze[pos[1]][pos[0]] &= ~0b11000000
-                self.maze[self.entry[1]][self.entry[0]] |= 0b10000000
-                self.maze[self.exit[1]][self.exit[0]] |= 0b01000000
-                break
-            elif key == 'w':
-                if not self.maze[pos[1]][pos[0]] & 0b0001:
-                    new_pos = (pos[0], pos[1] - 1)
-            elif key == 'a':
-                if not self.maze[pos[1]][pos[0]] & 0b1000:
-                    new_pos = (pos[0] - 1, pos[1])
-            elif key == 's':
-                if not self.maze[pos[1]][pos[0]] & 0b0100:
-                    new_pos = (pos[0], pos[1] + 1)
-            elif key == 'd':
-                if not self.maze[pos[1]][pos[0]] & 0b0010:
-                    new_pos = (pos[0] + 1, pos[1])
-            if pos == self.entry:
-                self.maze[pos[1]][pos[0]] &= ~0b01000000
-            elif pos == self.exit:
-                self.maze[pos[1]][pos[0]] &= ~0b1000000
-            else:
-                self.maze[pos[1]][pos[0]] &= ~0b11000000
-
-    def solve_maze(self, with_animation: bool) -> list[tuple[int, int]] | None:
+    def a_star(self) -> list[tuple[int, int]] | None:
         """ solves the maze using the A* algorithm,
         which is a pathfinding algorithm
 
         Args:
-            with_animation (bool): whether to animate the solving
             process by rendering the maze at each step,
 
         Returns:
@@ -516,27 +419,15 @@ class MazeGenerator:
         visited: set[tuple[int, int]] = set()
 
         while heap:
-            if with_animation:
-                sys.stdout.write("\033[H\033[J")
-                self.render()
             _, cost, point, path = heappop(heap)
             if point == end:
-                for p in path:
-                    self.maze[p[1]][p[0]] |= 0b11000000
-                    if with_animation:
-                        sys.stdout.write("\033[H\033[J")
-                        self.render()
-                        time.sleep(0.04)
-                self.maze[start[1]][start[0]] &= ~0b01000000
-                self.maze[end[1]][end[0]] &= ~0b10000000
-                for p in visited:
-                    self.maze[p[1]][p[0]] &= ~0b10000
                 self.solution = points_to_path(path)
+                for p in path:
+                    self.maze[p[1]][p[0]] |= 0b00100000
                 return path
             if point in visited:
                 continue
             visited.add(point)
-            self.maze[point[1]][point[0]] |= 0b10000
             for neighbor in get_neighbors(point):
                 if neighbor not in visited:
                     new_cost = cost + 1
@@ -546,7 +437,17 @@ class MazeGenerator:
                         neighbor,
                         path + [neighbor]
                     ))
-            if with_animation:
-                time.sleep(0.04)
 
         return None
+
+    def get_maze(self) -> list[tuple[int, int, int]]:
+        """ returns the maze as a list of tuples,
+        where each tuple contains the x and y coordinates
+        of a cell and its value
+
+        Returns:
+            list[tuple[int, int, int]]: the maze as a list of tuples,
+            where each tuple contains the x and y coordinates
+            of a cell and its value
+        """
+        return [(x, y, self.maze[y][x]) for y in range(self.h) for x in range(self.w)]

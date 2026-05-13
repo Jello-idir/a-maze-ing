@@ -1,23 +1,13 @@
-from mazegen import MlxWindow, MazeConfig, ColorConfig, SizeConfig, Config
-from MLX.libmlx import mlx
-import tomllib
 import os
+import sys
+import tomllib
+from MLX.libmlx import mlx
+from mazegen import MazeGenerator, MlxWindow, MazeConfig, ColorConfig, SizeConfig, Config
 
 
-def load_maze_from_file(file) -> list[tuple[int, int, int]]:
-    maze_file = open(str(file), "r")
-    cells = []
-    y = 0
-    for line in maze_file:
-        line = line.strip()
-        for x, ch in enumerate(line):
-            val = int(ch, 16)
-            cells.append((x, y, val))
-        y += 1
-    return cells
+color_pallets = ["blue.toml", "green.toml", "orange.toml"]
 
-
-def load_colors_from_file(pallet_path: str) -> ColorConfig:
+def load_color(pallet_path: str) -> ColorConfig:
     """ loads the colors from a toml file and returns a ColorConfig object
 
     Args:
@@ -40,50 +30,68 @@ def load_colors_from_file(pallet_path: str) -> ColorConfig:
     return ColorConfig(**raw["maze_colors"])
 
 
-def hooker_test(param) -> None:
-    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 256):  # ESC
+show_path = False
+
+
+def start(param) -> None:
+    global show_path
+    if (window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 256)
+        or mlx.mlx_is_key_down(window.mlx_ptr, 81) ):   # ESC or Q
         mlx.mlx_close_window(window.mlx_ptr)
+
     if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 82):   # R
-        window.frame.draw_cells(load_maze_from_file(2))
-    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 83):   # S
-        window.frame.gridify()
-    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 84):   # T
-        ...
-    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 85):   # U
-        ...
-    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 86):   # V
-        ...
-    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 87):   # W
-        ...
-    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 88):   # X
-        ...
+        generator.initialize()
+        generator.wilson_algo()
+        generator.a_star()
+        window.frame.draw_cells(generator.get_maze(), show_path=show_path)
 
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 72):   # H
+        show_path = not show_path
+        window.frame.draw_cells(generator.get_maze(), show_path=show_path)
 
-if __name__ == "__main__":
-    global window
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 67):   # C
+        window.use_color(load_color("green.toml"))
+        window.frame.draw_cells(generator.get_maze(), show_path=show_path)
 
-    # config
-    # -------------------------
+def init_config() -> Config:
     cfg_file = open("config.txt", "r")
     config = MazeConfig.from_file(cfg_file)
-
-    colors = load_colors_from_file("default.toml")
-
+    colors = load_color("blue.toml")
     sizes = SizeConfig(
         cell=32,
         wall=3,
         padd=10,
     )
-
-    cfg = Config(config, colors, sizes)
-
-
-    # test file
-    # -------------------------
-    file_maze = load_maze_from_file(1)
+    return Config(config, colors, sizes)
 
 
-    # init
-    # -------------------------
-    window = MlxWindow(cfg)
-    window.render(file_maze, hooker_test)
+if __name__ == "__main__":
+    global window
+    global generator
+
+    try:
+        cfg = init_config()
+    except Exception as e:
+        print(f"Error loading config: {e}", file=sys.stderr)
+        exit(1)
+
+    try:
+        generator = MazeGenerator.from_object(cfg.config)
+    except Exception as e:
+        print(f"Error initializing maze generator: {e}", file=sys.stderr)
+        exit(1)
+
+    try:
+        window = MlxWindow(cfg)
+    except Exception as e:
+        print(f"Error initializing window: {e}", file=sys.stderr)
+        exit(1)
+
+    try:
+        generator.initialize()
+        generator.wilson_algo()
+        generator.a_star()
+        window.start(generator.get_maze(), start)
+    except Exception as e:
+        print(f"Error starting window: {e}", file=sys.stderr)
+        exit(1)

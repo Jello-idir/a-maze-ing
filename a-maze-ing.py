@@ -87,12 +87,12 @@ def start(mzgen: MazeGenerator, mzcnf: MazeConfig, mzasci: AsciiMaze) -> None:
         elif key == "c":
             mzasci.next_color()
         elif key == "s":
-            mzgen.solve_maze(False)
+            mzgen.a*(False)
             mzasci.showpath = True
         elif key == "a":
             mzasci.delete_path()
             mzasci.showpath = True
-            mzgen.solve_maze(True)
+            mzgen.a*(True)
         elif key == "h":
             mzasci.toggle_path()
         elif key == "m":
@@ -121,7 +121,7 @@ def start_maze_interaction() -> None:
     mzgen.connect_ascii(mzasci)
 
     mzgen.wilson_algo()
-    mzgen.solve_maze(False)
+    mzgen.a*(False)
 
     start(mzgen, mzcnf, mzasci)
 

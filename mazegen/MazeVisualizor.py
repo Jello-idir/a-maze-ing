@@ -1,3 +1,4 @@
+from .DataClasses import ColorConfig
 from .MazeConfig import MazeConfig
 from MLX.libmlx import *
 from typing import Any
@@ -7,8 +8,6 @@ import ctypes
 class MazeMenu:
     def __init__(self, mlx_ptr, cfg, abs_width, abs_height) -> None:
         self.cfg = cfg
-        self.width = abs_width
-        self.height = abs_height
         self.img = mlx.mlx_new_image(mlx_ptr, abs_width, abs_height)
 
     def decorate(self) -> None:
@@ -27,7 +26,6 @@ class MazeMenu:
         # drawing the border
         border_color = self.cfg.colors.wall
 
-        # border_color = 0xff0000ff
         thick = self.cfg.sizes.wall
 
         # drawing horizental lines
@@ -39,16 +37,16 @@ class MazeMenu:
                     pixels[idx + 1] = (border_color >> 16) & 0xFF
                     pixels[idx + 2] = (border_color >> 8 ) & 0xFF
                     pixels[idx + 3] = (border_color      ) & 0xFF
+
         # drawing vertical lines
-        for side in (0,):
-            for y in range(img.height):
-                for t in range(thick):
-                    idx = (y * img.width) * 4
+        for side in (0, img.width - thick):
+            for t in range(thick):
+                for y in range(img.height):
+                    idx = (y * img.width + t + side) * 4
                     pixels[idx]     = (border_color >> 24) & 0xFF
                     pixels[idx + 1] = (border_color >> 16) & 0xFF
                     pixels[idx + 2] = (border_color >> 8 ) & 0xFF
                     pixels[idx + 3] = (border_color      ) & 0xFF
-                return
 
 
 class MazeFrame:
@@ -82,7 +80,8 @@ class MazeFrame:
                     pixels[idx + 2] = (bg_grid_color >> 8 ) & 0xFF
                     pixels[idx + 3] = (bg_grid_color      ) & 0xFF
 
-    def draw_cells(self, cells: list[tuple[int, int, int]]) -> None:
+    def draw_cells(self, cells: list[tuple[int, int, int]],
+                   show_path: bool = True) -> None:
         img = self.img.contents
         pixels = img.pixels
         cell = self.cfg.sizes.cell
@@ -104,6 +103,12 @@ class MazeFrame:
             color = self.cfg.colors.cell
             if (val & 0b1111) == 0b1111:
                 color = self.cfg.colors.block
+            elif val & 0b10000000:
+                color = self.cfg.colors.entry
+            elif val & 0b01000000:
+                color = self.cfg.colors.exit
+            elif val & 0b00100000 and show_path:
+                color = self.cfg.colors.path
 
             for j in range(thick, cell):
                 for i in range(thick, cell):
@@ -129,21 +134,31 @@ class MazeFrame:
                 for i in range(thick):
                     put(ox + i, oy + j, fill_color)
 
+            # drawing dots in corners
+            dot_color = self.cfg.colors.wall
+            for j in range(thick):
+                for i in range(thick):
+                    put(ox + i, oy + j, dot_color)
+                    put(ox + cell + i, oy + j, dot_color)
+                    put(ox + i, oy + cell + j, dot_color)
+                    put(ox + cell + i, oy + cell + j, dot_color)
+
 
 class MlxWindow:
     def __init__(self, cfg) -> None:
+        self.cfg = cfg
         frame_size = (
             cfg.config.width  * cfg.sizes.cell + cfg.sizes.wall,
             cfg.config.height * cfg.sizes.cell + cfg.sizes.wall
         )
         menu_size = (
-            200,
-            max(frame_size[1], 400)
+            max(200, frame_size[0]),
+            32
         )
 
         self.mlx_ptr = mlx.mlx_init(
-            frame_size[0] + menu_size[0],
-            max(menu_size[1], 400),
+            menu_size[0],
+            frame_size[1] + menu_size[1],
             b"A-Maze-Ing", False
         )
         self.frame = MazeFrame(
@@ -159,14 +174,16 @@ class MlxWindow:
             menu_size[1]
         )
 
+    def use_color(self, color: ColorConfig) -> None:
+        self.cfg.colors = color
 
-    def render(self, init_maze, func) -> None:
+    def start(self, initmaze, func) -> None:
+
         mlx.mlx_image_to_window(self.mlx_ptr, self.frame.img, 0, 0)
-        mlx.mlx_image_to_window(self.mlx_ptr, self.menu.img, self.frame.img.contents.width, 0)
+        mlx.mlx_image_to_window(self.mlx_ptr, self.menu.img, 0, self.frame.img.contents.height)
 
-        self.frame.gridify()
         self.menu.decorate()
-        self.frame.draw_cells(init_maze)
+        self.frame.draw_cells(initmaze, show_path=False)
 
 
         self._hook = ctypes.CFUNCTYPE(None, ctypes.c_void_p)(func)
