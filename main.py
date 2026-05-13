@@ -1,11 +1,11 @@
-from mazegen import MlxWindow, MazeMenu, MazeFrame, MazeConfig, ColorConfig, SizeConfig, Config
+from mazegen import MlxWindow, MazeConfig, ColorConfig, SizeConfig, Config
+from MLX.libmlx import mlx
 import tomllib
 import os
-import time
 
 
-def load_maze_from_file() -> list[tuple[int, int, int]]:
-    maze_file = open("maze.txt", "r")
+def load_maze_from_file(file) -> list[tuple[int, int, int]]:
+    maze_file = open(str(file), "r")
     cells = []
     y = 0
     for line in maze_file:
@@ -39,20 +39,24 @@ def load_colors_from_file(pallet_path: str) -> ColorConfig:
 
     return ColorConfig(**raw["maze_colors"])
 
-a = 0
 
 def hooker_test(param) -> None:
-    global a
-
-    if a:
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 256):  # ESC
+        mlx.mlx_close_window(window.mlx_ptr)
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 82):   # R
+        window.frame.draw_cells(load_maze_from_file(2))
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 83):   # S
         window.frame.gridify()
-        window.menu.decorate()
-        window.frame.draw_cells(file_maze)
-        a = 0
-    new = []
-    for a, b, c in file_maze:
-        new += [(a, b, c)]
-    window.frame.draw_cells(new)
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 84):   # T
+        ...
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 85):   # U
+        ...
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 86):   # V
+        ...
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 87):   # W
+        ...
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 88):   # X
+        ...
 
 
 if __name__ == "__main__":
@@ -76,10 +80,10 @@ if __name__ == "__main__":
 
     # test file
     # -------------------------
-    file_maze = load_maze_from_file()
+    file_maze = load_maze_from_file(1)
 
 
     # init
     # -------------------------
     window = MlxWindow(cfg)
-    window.render(hooker_test)
+    window.render(file_maze, hooker_test)

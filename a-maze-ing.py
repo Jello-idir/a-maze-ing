@@ -112,33 +112,18 @@ def start_maze_interaction() -> None:
     it initializes the maze generator,
     the ascii maze and starts the interactive menu
     """
-    try:
-        mzcnf = get_config()
-    except (ValueError, ValidationError) as e:
-        raise ValueError(f"\033[31mConfig Error:\033[0m {e}")
+    mzcnf = get_config()
 
-    try:
-        mzgen = MazeGenerator.from_object(mzcnf)
-        mzgen.intialize()
-    except ValueError as e:
-        raise ValueError(f"\033[31mMaze Generation Error:\033[0m {e}")
+    mzgen = MazeGenerator.from_object(mzcnf)
+    mzgen.intialize()
 
-    try:
-        mzasci = AsciiMaze(mzgen.maze)
-        mzgen.connect_ascii(mzasci)
-    except ValueError as e:
-        raise ValueError(f"\033[31masci display Error:\033[0m {e}")
+    mzasci = AsciiMaze(mzgen.maze)
+    mzgen.connect_ascii(mzasci)
 
-    try:
-        mzgen.wilson_algo()
-        mzgen.solve_maze(False)
-    except Exception as e:
-        raise ValueError(f"\033[31mMaze Generation Error:\033[0m {e}")
+    mzgen.wilson_algo()
+    mzgen.solve_maze(False)
 
-    try:
-        start(mzgen, mzcnf, mzasci)
-    except Exception as e:
-        raise ValueError(f"\033[31mInteraction Error:\033[0m {e}")
+    start(mzgen, mzcnf, mzasci)
 
 
 if __name__ == "__main__":

@@ -1,13 +1,5 @@
 ## *This project has been created as part of the 42 curriculum by aait-idi, yoabied.*
 
-<!-- 9sem -->
-<div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="font-size: 45px;">📄</span>
-  <span style="font-size: 40px;">&lt;/&gt;</span>
-  <span style="font-size: 40px;">🐪</span>
-</div>
-
-![Banner](assets/banner.png)
 
 # Description
 The goal of this project is to create a maze generator and solver. The program will generate a maze based on a given configuration file and then solve it using a chosen algorithm. The maze will be displayed in the terminal, and the solution will be highlighted.

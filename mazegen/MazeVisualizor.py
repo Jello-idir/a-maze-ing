@@ -4,21 +4,6 @@ from typing import Any
 import ctypes
 
 
-# def fill_image(img_ptr, color: int) -> None:
-#     img = img_ptr.contents
-#     pixels = img.pixels
-#     r = (color >> 24) & 0xFF
-#     g = (color >> 16) & 0xFF
-#     b = (color >> 8 ) & 0xFF
-#     a = (color      ) & 0xFF
-#     for y in range(img.height):
-#         for x in range(img.width):
-#             idx = (y * img.width + x) * 4
-#             pixels[idx]     = r
-#             pixels[idx + 1] = g
-#             pixels[idx + 2] = b
-#             pixels[idx + 3] = a
-
 class MazeMenu:
     def __init__(self, mlx_ptr, cfg, abs_width, abs_height) -> None:
         self.cfg = cfg
@@ -41,8 +26,8 @@ class MazeMenu:
 
         # drawing the border
         border_color = self.cfg.colors.wall
-        # border_color = 0xff0000ff
 
+        # border_color = 0xff0000ff
         thick = self.cfg.sizes.wall
 
         # drawing horizental lines
@@ -64,6 +49,7 @@ class MazeMenu:
                     pixels[idx + 2] = (border_color >> 8 ) & 0xFF
                     pixels[idx + 3] = (border_color      ) & 0xFF
                 return
+
 
 class MazeFrame:
     def __init__(self, mlx_ptr, cfg, width, height) -> None:
@@ -101,6 +87,7 @@ class MazeFrame:
         pixels = img.pixels
         cell = self.cfg.sizes.cell
         thick = self.cfg.sizes.wall
+        wall_color = self.cfg.colors.wall
 
         def put(px, py, color):
             if 0 <= px < img.width and 0 <= py < img.height:
@@ -113,9 +100,8 @@ class MazeFrame:
         for x, y, val in cells:
             ox = x * cell
             oy = y * cell
-            color = self.cfg.colors.cell
-            wall_color = self.cfg.colors.wall
 
+            color = self.cfg.colors.cell
             if (val & 0b1111) == 0b1111:
                 color = self.cfg.colors.block
 
@@ -123,26 +109,25 @@ class MazeFrame:
                 for i in range(thick, cell):
                     put(ox + i, oy + j, color)
 
-            if val & 0b0001:
-                for j in range(thick):
-                    for i in range(cell + thick):
-                        put(ox + i, oy + j, wall_color)
+            fill_color = wall_color if val & 0b0001 else color
+            for j in range(thick):
+                for i in range(cell + thick):
+                    put(ox + i, oy + j, fill_color)
 
-            if val & 0b0010:
-                for j in range(cell + thick):
-                    for i in range(thick):
-                        put(ox + cell + i, oy + j, wall_color)
+            fill_color = wall_color if val & 0b0010 else color
+            for j in range(cell + thick):
+                for i in range(thick):
+                    put(ox + cell + i, oy + j, fill_color)
 
-            if val & 0b0100:
-                for j in range(thick):
-                    for i in range(cell + thick):
-                        put(ox + i, oy + cell + j, wall_color)
+            fill_color = wall_color if val & 0b0100 else color
+            for j in range(thick):
+                for i in range(cell + thick):
+                    put(ox + i, oy + cell + j, fill_color)
 
-            if val & 0b1000:
-                for j in range(cell + thick):
-                    for i in range(thick):
-                        put(ox + i, oy + j, wall_color)
-
+            fill_color = wall_color if val & 0b1000 else color
+            for j in range(cell + thick):
+                for i in range(thick):
+                    put(ox + i, oy + j, fill_color)
 
 
 class MlxWindow:
@@ -174,13 +159,18 @@ class MlxWindow:
             menu_size[1]
         )
 
-    def render(self, func) -> None:
+
+    def render(self, init_maze, func) -> None:
         mlx.mlx_image_to_window(self.mlx_ptr, self.frame.img, 0, 0)
         mlx.mlx_image_to_window(self.mlx_ptr, self.menu.img, self.frame.img.contents.width, 0)
 
+        self.frame.gridify()
+        self.menu.decorate()
+        self.frame.draw_cells(init_maze)
 
-        f = ctypes.CFUNCTYPE(None, ctypes.c_void_p)(func)
 
-        mlx.mlx_loop_hook(self.mlx_ptr, f, None)
+        self._hook = ctypes.CFUNCTYPE(None, ctypes.c_void_p)(func)
+        mlx.mlx_loop_hook(self.mlx_ptr, self._hook, ctypes.c_void_p(None))
+
         mlx.mlx_loop(self.mlx_ptr)
         mlx.mlx_terminate(self.mlx_ptr)
