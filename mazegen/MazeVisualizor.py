@@ -1,7 +1,6 @@
 from .DataClasses import ColorConfig
 from .MazeConfig import MazeConfig
 from MLX.libmlx import *
-from typing import Any
 import ctypes
 
 

@@ -87,24 +87,13 @@ def start(mzgen: MazeGenerator, mzcnf: MazeConfig, mzasci: AsciiMaze) -> None:
         elif key == "c":
             mzasci.next_color()
         elif key == "s":
-            mzgen.a*(False)
             mzasci.showpath = True
         elif key == "a":
             mzasci.delete_path()
             mzasci.showpath = True
-            mzgen.a*(True)
         elif key == "h":
             mzasci.toggle_path()
-        elif key == "m":
-            mzasci.showpath = True
-            mzasci.delete_path()
-            mzgen.free_move()
         elif key == "w":
-            try:
-                mzgen.write_to_file(mzcnf.output_file)
-                print(f"\033[32mMaze written to {mzcnf.output_file}\033[0m")
-            except Exception as e:
-                print(f"\033[31mError writing to file:\033[0m {e}")
 
 
 def start_maze_interaction() -> None:

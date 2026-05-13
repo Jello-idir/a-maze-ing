@@ -5,8 +5,6 @@ from MLX.libmlx import mlx
 from mazegen import MazeGenerator, MlxWindow, MazeConfig, ColorConfig, SizeConfig, Config
 
 
-color_pallets = ["blue.toml", "green.toml", "orange.toml"]
-
 def load_color(pallet_path: str) -> ColorConfig:
     """ loads the colors from a toml file and returns a ColorConfig object
 
@@ -29,12 +27,23 @@ def load_color(pallet_path: str) -> ColorConfig:
 
     return ColorConfig(**raw["maze_colors"])
 
+def color_generator():
+    """ returns a generator that each time it is called, it returns a color pallet from the color_pallets list in a loop
+
+    Returns:
+        generator: a generator that each time it is called, it returns a color pallet from the color_pallets list in a loop
+    """
+    color_pallets = ["blue.toml", "green.toml", "orange.toml"]
+    while True:
+        for pallet in color_pallets:
+            yield load_color(pallet)
 
 show_path = False
-
+clr_gen = color_generator()
 
 def start(param) -> None:
     global show_path
+    global clr_gen
     if (window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 256)
         or mlx.mlx_is_key_down(window.mlx_ptr, 81) ):   # ESC or Q
         mlx.mlx_close_window(window.mlx_ptr)
@@ -50,13 +59,23 @@ def start(param) -> None:
         window.frame.draw_cells(generator.get_maze(), show_path=show_path)
 
     if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 67):   # C
-        window.use_color(load_color("green.toml"))
+        window.use_color(next(clr_gen))
+        print("using color", window.cfg.colors)  # debug print
         window.frame.draw_cells(generator.get_maze(), show_path=show_path)
 
+    if window.mlx_ptr and mlx.mlx_is_key_down(window.mlx_ptr, 87):  # W
+        try:
+            generator.write_to_file(window.cfg.config.output_file)
+        except Exception as e:
+            print(f"\033[31mError writing to file:\033[0m {e}")
+
+
 def init_config() -> Config:
+    global clr_gen
+
     cfg_file = open("config.txt", "r")
     config = MazeConfig.from_file(cfg_file)
-    colors = load_color("blue.toml")
+    colors = next(clr_gen)
     sizes = SizeConfig(
         cell=32,
         wall=3,
@@ -68,6 +87,7 @@ def init_config() -> Config:
 if __name__ == "__main__":
     global window
     global generator
+
 
     try:
         cfg = init_config()
