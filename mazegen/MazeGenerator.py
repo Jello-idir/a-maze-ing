@@ -47,7 +47,7 @@ class MazeGenerator:
             self.seed = int(time.time())
         random.seed(self.seed)
         if not already_valid:
-            self._validate_params()
+            self._is_params_valid()
 
     @classmethod
     def from_object(cls, config: MazeConfig) -> 'MazeGenerator':
@@ -72,7 +72,7 @@ class MazeGenerator:
             already_valid=True
         )
 
-    def _validate_params(self) -> None:
+    def _is_params_valid(self) -> None:
         """ validates the parameters for maze generation,
         ensuring that the width and height are sufficient,
 
@@ -105,7 +105,7 @@ class MazeGenerator:
             f.write(f"{self.exit[0]},{self.exit[1]}\n")
             f.write(self.solution + '\n')
 
-    def initialize(self) -> None:
+    def init(self) -> None:
         """generates the maze by initializing it,
         adding the 42 pattern, marking the entry and exit,
         """
@@ -122,7 +122,7 @@ class MazeGenerator:
         self.maze[self.exit[1]][self.exit[0]] |= 0b01000000
         self._add_42_pattern()
 
-    def wilson_algo(self) -> None:
+    def generation_algo(self) -> None:
         """ generates the maze using Wilson's algorithm,
         which is a randomized algorithm
         """
@@ -141,7 +141,7 @@ class MazeGenerator:
             self.maze[start[1]][start[0]] |= 0b10000
             p = start
 
-            def random_neighbor(p: tuple[int, int]) -> tuple[int, int]:
+            def get_random_neighbor(p: tuple[int, int]) -> tuple[int, int]:
                 neighbors = []
                 if (p[1] > 0
                         and self.maze[p[1] - 1][p[0]] >> 4 != 0b1111):
@@ -158,7 +158,7 @@ class MazeGenerator:
                 return random.choice(neighbors)
 
             while True:
-                p = random_neighbor(p)
+                p = get_random_neighbor(p)
                 if p in path:
                     loop_start = path.index(p)
                     to_remove = path[loop_start + 1:]
@@ -203,7 +203,7 @@ class MazeGenerator:
                     neighbors.append((p[0] - 1, p[1]))
                 return neighbors
 
-            def is_safe_to_break(p: tuple[int, int]) -> bool:
+            def is_breakable(p: tuple[int, int]) -> bool:
                 """ checks if it's safe to break a wall at
                 the given cell without creating a loop,
 
@@ -235,7 +235,7 @@ class MazeGenerator:
                         self._change_wall(p1, "E", "open")
                     else:
                         self._change_wall(p1, "W", "open")
-            if (is_safe_to_break(p1)
+            if (is_breakable(p1)
                     and random.random() < 0.5
                     and not self.perfect):
                 to_break = "NESW"
@@ -450,4 +450,8 @@ class MazeGenerator:
             where each tuple contains the x and y coordinates
             of a cell and its value
         """
-        return [(x, y, self.maze[y][x]) for y in range(self.h) for x in range(self.w)]
+        return [
+            (x, y, self.maze[y][x])
+            for y in range(self.h)
+            for x in range(self.w)
+            ]

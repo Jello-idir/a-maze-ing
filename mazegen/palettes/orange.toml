@@ -1,12 +1,12 @@
 [maze_colors]
 cell = 0x2C2C2C
-wall = 0xFFFFFF
+wall = 0xF8874F
 
-block = 0xF8874F
+block = 0xFFFFFF
 visited = 0xECB497
 path = 0xECB497
 
-menu = 0x3B4356
+menu = 0x2C2C2C
 
 grid = 0x414141
 bg_grid = 0xC0C0C0

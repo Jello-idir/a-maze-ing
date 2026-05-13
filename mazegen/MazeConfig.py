@@ -1,6 +1,7 @@
 from typing import TextIO, Any
 import os
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import (BaseModel, Field,  # type: ignore
+                      field_validator, ConfigDict)
 os.environ['PYDANTIC_ERRORS_INCLUDE_URL'] = '0'
 
 
@@ -45,7 +46,7 @@ class MazeConfig(BaseModel):
         return v
 
     @field_validator('entry', 'exit', mode='before')
-    def vali_coordinates(cls, v: str) -> tuple[int, int]:
+    def check_coordinates(cls, v: str) -> tuple[int, int]:
         """validate that the coordinates are in the correct format (x,y)
 
         Args:
@@ -66,7 +67,7 @@ class MazeConfig(BaseModel):
             raise ValueError("Coordinates must be in x,y format")
 
     @field_validator('entry', 'exit')
-    def vali_bounds(cls, v: tuple[int, int], info: Any) -> tuple[int, int]:
+    def check_bounds(cls, v: tuple[int, int], info: Any) -> tuple[int, int]:
         """validate that the coordinates are within the bounds of the maze
 
         Args:
@@ -87,8 +88,10 @@ class MazeConfig(BaseModel):
         return v
 
     @field_validator('exit')
-    def vali_is_same_points(cls, v: tuple[int, int],
-                            info: Any) -> tuple[int, int]:
+    def check_is_same_points(
+            cls, v: tuple[int, int],
+            info: Any
+            ) -> tuple[int, int]:
         """validate that entry and exit are not the same point
 
         Args:

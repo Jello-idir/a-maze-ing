@@ -2,7 +2,7 @@
 name = "mazegen"
 version = "1.0.0"
 description = "Interactive maze generation and pathfinding visualizer"
-authors = ["aait-idi and yoabied"]
+authors = ["aait-idi and azgor"]
 packages = [
     { include = "mazegen" },
 ]
