@@ -174,7 +174,13 @@ class MlxWindow:
             menu_size[1]
         )
 
-    def render(self) -> None:
+    def render(self, func) -> None:
         mlx.mlx_image_to_window(self.mlx_ptr, self.frame.img, 0, 0)
         mlx.mlx_image_to_window(self.mlx_ptr, self.menu.img, self.frame.img.contents.width, 0)
+
+
+        f = ctypes.CFUNCTYPE(None, ctypes.c_void_p)(func)
+
+        mlx.mlx_loop_hook(self.mlx_ptr, f, None)
         mlx.mlx_loop(self.mlx_ptr)
+        mlx.mlx_terminate(self.mlx_ptr)

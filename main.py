@@ -1,6 +1,7 @@
 from mazegen import MlxWindow, MazeMenu, MazeFrame, MazeConfig, ColorConfig, SizeConfig, Config
 import tomllib
 import os
+import time
 
 
 def load_maze_from_file() -> list[tuple[int, int, int]]:
@@ -38,9 +39,24 @@ def load_colors_from_file(pallet_path: str) -> ColorConfig:
 
     return ColorConfig(**raw["maze_colors"])
 
+a = 0
+
+def hooker_test(param) -> None:
+    global a
+
+    if a:
+        window.frame.gridify()
+        window.menu.decorate()
+        window.frame.draw_cells(file_maze)
+        a = 0
+    new = []
+    for a, b, c in file_maze:
+        new += [(a, b, c)]
+    window.frame.draw_cells(new)
 
 
 if __name__ == "__main__":
+    global window
 
     # config
     # -------------------------
@@ -66,10 +82,4 @@ if __name__ == "__main__":
     # init
     # -------------------------
     window = MlxWindow(cfg)
-    window.frame.gridify()
-    window.menu.decorate()
-
-    window.frame.draw_cells(file_maze)
-
-
-    window.render()
+    window.render(hooker_test)
